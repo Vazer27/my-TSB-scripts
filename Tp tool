@@ -1,1 +1,1 @@
-https://github.com/Vazer27/my-TSB-scripts/raw/refs/heads/main/Tp%20tool
+loadstring(game:HttpGet("https://github.com/Vazer27/my-TSB-scripts/raw/refs/heads/main/Tp%20tool"))()
