@@ -1,0 +1,138 @@
+--credits to endgoal
+--credits to endgoal
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+
+local lp = Players.LocalPlayer
+local espEnabled = false
+local tracers = {}
+
+-- Storage for highlights
+local Storage = Instance.new("Folder")
+Storage.Name = "ESP_Storage"
+Storage.Parent = game:GetService("CoreGui")
+
+-- Backup original lighting properties
+local originalFogEnd = Lighting.FogEnd
+local originalFogStart = Lighting.FogStart
+local originalSkybox = Lighting:FindFirstChildOfClass("Sky")
+
+-- Function to create a highlight for players
+local function highlightPlayer(plr)
+    if not plr.Character then return end
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerHighlight_" .. plr.Name
+    highlight.FillColor = Color3.fromRGB(0, 85, 255)
+    highlight.FillTransparency = 0.3
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = "AlwaysOnTop"
+    highlight.Adornee = plr.Character
+    highlight.Parent = Storage
+
+    -- Update adornee if the player respawns
+    plr.CharacterAdded:Connect(function(char)
+        highlight.Adornee = char
+    end)
+end
+
+-- Function to highlight objects in the workspace
+local function highlightObjects()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj:IsDescendantOf(lp.Character) then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "PartHighlight_" .. obj:GetDebugId(2)
+            highlight.FillColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.9
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.OutlineTransparency = 0
+            highlight.DepthMode = "AlwaysOnTop"
+            highlight.Adornee = obj
+            highlight.Parent = Storage
+        end
+    end
+end
+
+-- Function to create a tracer part
+local function createTracer(targetPos)
+    local tracer = Instance.new("Part")
+    tracer.Size = Vector3.new(0.1, 0.1, (lp.Character.HumanoidRootPart.Position - targetPos).Magnitude)
+    tracer.Anchored = true
+    tracer.CanCollide = false
+    tracer.Material = Enum.Material.SmoothPlastic
+    tracer.Color = Color3.fromRGB(0, 255, 255)
+    tracer.CFrame = CFrame.new(lp.Character.HumanoidRootPart.Position, targetPos) * CFrame.new(0, 0, -tracer.Size.Z / 2)
+    tracer.Transparency = 0.5
+    tracer.Parent = workspace
+    return tracer
+end
+
+-- Function to update tracers for players
+local function updateTracers()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= lp and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPos = player.Character.HumanoidRootPart.Position
+            if not tracers[player] then
+                tracers[player] = createTracer(targetPos)
+            else
+                local tracer = tracers[player]
+                tracer.Size = Vector3.new(0.1, 0.1, (lp.Character.HumanoidRootPart.Position - targetPos).Magnitude)
+                tracer.CFrame = CFrame.new(lp.Character.HumanoidRootPart.Position, targetPos) * CFrame.new(0, 0, -tracer.Size.Z / 2)
+            end
+        end
+    end
+end
+
+-- Function to enable ESP
+local function enableESP()
+    espEnabled = true
+    Lighting.FogStart = 0
+    Lighting.FogEnd = 50
+    Lighting.FogColor = Color3.new(0, 0, 0)
+    Lighting:SetMinutesAfterMidnight(0) -- Default night skybox
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= lp then
+            highlightPlayer(player)
+        end
+    end
+
+    highlightObjects()
+
+    RunService.RenderStepped:Connect(updateTracers)
+end
+
+-- Function to disable ESP
+local function disableESP()
+    espEnabled = false
+    Lighting.FogStart = originalFogStart
+    Lighting.FogEnd = originalFogEnd
+    Lighting.FogColor = Color3.new(1, 1, 1)
+    Lighting:SetMinutesAfterMidnight(600) -- Default day skybox
+
+    Storage:ClearAllChildren()
+
+    for _, tracer in pairs(tracers) do
+        if tracer then tracer:Destroy() end
+    end
+    tracers = {}
+end
+
+-- Toggle ESP
+local function toggleESP()
+    if espEnabled then
+        disableESP()
+    else
+        enableESP()
+    end
+end
+
+-- Create the tool
+local tool = Instance.new("Tool")
+tool.Name = "Observation"
+tool.RequiresHandle = false
+tool.Parent = lp:WaitForChild("Backpack")
+
+-- Bind tool activation to toggle ESP
+tool.Activated:Connect(toggleESP)
