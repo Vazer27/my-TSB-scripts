@@ -1,1 +1,41 @@
-loadstring(game:HttpGet("https://github.com/Vazer27/my-TSB-scripts/raw/refs/heads/main/run%20tool%20in%20a%20loadstring%20tsb"))()
+local tool = Instance.new("Tool")
+    tool.Name = "Super-Fast"
+
+    tool.Parent = game.Players.LocalPlayer.Backpack
+    tool.RequiresHandle = false
+
+    local moving = false
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    local humanoid = character:WaitForChild("Humanoid")
+    local runService = game:GetService("RunService")
+    local movementSpeed = 125
+
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://18897115785" 
+    local animator = humanoid:FindFirstChildOfClass("Animator") or humanoid:WaitForChild("Animator")
+    local animationTrack
+
+
+    local function moveForward()
+        while moving do
+            local forwardDirection = humanoidRootPart.CFrame.LookVector
+            humanoidRootPart.Velocity = forwardDirection * movementSpeed
+            runService.Stepped:Wait()
+        end
+    end
+
+    tool.Equipped:Connect(function()
+        moving = true
+        animationTrack = animator:LoadAnimation(animation)
+        animationTrack:Play()
+        moveForward()
+    end)
+
+    tool.Unequipped:Connect(function()
+        moving = false
+        if animationTrack then
+            animationTrack:Stop()
+        end
+    end)
