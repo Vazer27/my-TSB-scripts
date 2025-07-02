@@ -1,0 +1,103 @@
+--// Modern Code Runner GUI - LocalScript
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CodeRunnerGUI"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+-- Create main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 400, 0, 250)
+frame.Position = UDim2.new(0.5, -200, 0.5, -125)
+frame.BackgroundColor3 = Color3.fromRGB(2, 48, 32)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+-- Apply rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Create title label
+local title = Instance.new("TextLabel")
+title.Text = "1x1x1x1 Executor"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(0, 255, 0)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Parent = frame
+
+-- Create TextBox
+local codeBox = Instance.new("TextBox")
+codeBox.Size = UDim2.new(1, -20, 0, 150)
+codeBox.Position = UDim2.new(0, 10, 0, 40)
+codeBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+codeBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+codeBox.ClearTextOnFocus = false
+codeBox.MultiLine = true
+codeBox.TextWrapped = true
+codeBox.Text = "Loadstring Here"
+codeBox.Font = Enum.Font.Code
+codeBox.TextSize = 16
+codeBox.Parent = frame
+
+local codeCorner = Instance.new("UICorner")
+codeCorner.CornerRadius = UDim.new(0, 6)
+codeCorner.Parent = codeBox
+
+-- Create Run Button
+local runButton = Instance.new("TextButton")
+runButton.Size = UDim2.new(0, 100, 0, 30)
+runButton.Position = UDim2.new(1, -110, 1, -40)
+runButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+runButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+runButton.Text = "▶️ Run Script"
+runButton.Font = Enum.Font.GothamMedium
+runButton.TextSize = 16
+runButton.Parent = frame
+
+-- Create Clear Button
+local clearButton = Instance.new("TextButton")
+clearButton.Size = UDim2.new(0, 100, 0, 30)
+clearButton.Position = UDim2.new(0, 10, 1, -40)
+clearButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+clearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+clearButton.Text = "🗑️ Clear"
+clearButton.Font = Enum.Font.GothamMedium
+clearButton.TextSize = 16
+clearButton.Parent = frame
+
+clearButton.MouseButton1Click:Connect(function()
+    codeBox.Text = ""
+end)
+
+local clearCorner = Instance.new("UICorner")
+clearCorner.CornerRadius = UDim.new(0, 6)
+clearCorner.Parent = clearButton
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = runButton
+
+-- Run the code on button click
+runButton.MouseButton1Click:Connect(function()
+    local code = codeBox.Text
+    local success, result = pcall(function()
+        local func = loadstring(code)
+        if func then
+            func()
+        end
+    end)
+
+    if not success then
+        warn("Code Runner Error: ", result)
+    end
+end)
